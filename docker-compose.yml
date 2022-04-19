@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  http-server:
+    build:
+      context: .
+      target: http-server
+    depends_on:
+      - mongo
+    env_file:
+      .env
+    ports:
+      - 8080:8080
+    command: gunicorn -c gunicorn.conf.py flask_sorting:"create_flask_app()"
+  mongo:
+    image: mongo
+    env_file:
+      - .env
+    ports:
+      - 27017:27017
+  unit-tests:
+    build:
+      context: .
+      target: unit-tests
+    depends_on:
+      - http-server
+  integr-tests:
+    build:
+      context: .
+      target: integr-tests
+    depends_on:
+      - http-server
+    environment:
+      - HOST=http-server
+      - PORT=8080
